@@ -1,0 +1,19 @@
+{
+  "name": "retrieval-api",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@aws-cdk/aws-apigateway": "1.163.1",
+    "@aws-cdk/aws-lambda": "1.163.1",
+    "@aws-cdk/core": "1.163.1",
+    "@types/aws-lambda": "8.10.101",
+    "@types/node": "18.0.3",
+    "@types/pg": "8.6.5",
+    "aws-cdk": "2.31.1",
+    "ts-node": "10.8.2"
+  },
+  "dependencies": {
+    "pg": "8.7.3"
+  }
+}

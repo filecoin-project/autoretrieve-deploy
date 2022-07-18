@@ -5,7 +5,6 @@ export class ProviderRetrieval {
     // Validate the required fields are present
     if(!props.autoretrieveInstanceId) return new ValidationError("Property autoretrieveInstanceId is required");
     if(!props.cid) return new ValidationError("Property cid is required");
-    if(!props.errorMessage) return new ValidationError("Property errorMessage is required");
     if(!props.lastStage) return new ValidationError("Property lastStage is required");
     if(!props.peerId) return new ValidationError("Property peerId is required");
     if(!props.retrievalId) return new ValidationError("Property retrievalId is required");
@@ -15,20 +14,30 @@ export class ProviderRetrieval {
     let completed = false;
     if(props.completed !== undefined) completed = props.completed;
 
-    // Validate that the started and ended dates are actual dates
+    // Validate that the started and ended dates are valid date strings
     let startedAt, endedAt;
 
-    try {
-      startedAt = new Date(props.startedAt);
-    } catch(err) {
+    startedAt = new Date(props.startedAt);
+    if(!this.isValidDate(startedAt)) {
       return new ValidationError("Property startedAt must be a valid date string.");
     }
 
-    try {
-      // Property endedAt is optional, check if it exists first
-      if(props.endedAt) endedAt = new Date(props.endedAt);
-    } catch(err) {
-      return new ValidationError("Property endedAt must be a valid date string.");
+    // Property endedAt is optional, check if it exists first
+    if(props.endedAt) {
+      endedAt = new Date(props.endedAt);
+      if(!this.isValidDate(endedAt)) {
+        return new ValidationError("Property endedAt must be a valid date string.");
+      }
+    }
+
+    // We don't want to be completed and have no endedAt date
+    if(completed === true && endedAt === undefined) {
+      return new ValidationError("Property endedAt is required if property completed is true.")
+    }
+
+    // We don't want to have an endedAt date provided and not be completed
+    if(completed === false && endedAt !== undefined) {
+      return new ValidationError("Property completed must be true if property endedAt is provided.")
     }
 
     return new ProviderRetrieval({
@@ -37,6 +46,18 @@ export class ProviderRetrieval {
       startedAt,
       endedAt
     });
+  }
+
+  /**
+   * Checks if a Date object is a valid Date.
+   * @param date the date to check
+   * @returns true if the date is valid, false otherwise
+   */
+  private static isValidDate(date: Date): boolean {
+    // getTime() on an invalid Date will return NaN, and NaN === NaN is always false.
+    // NaN === NaN is false
+    // valid getTime() === valid getTime() is true
+    return date.getTime() === date.getTime();
   }
 
   get autoretrieveInstanceId(): string {
@@ -79,7 +100,7 @@ export class ProviderRetrieval {
     return this.props.startedAt.toISOString();
   }
 
-  private constructor(readonly props: ConstProviderRetrievalProps) {}
+  private constructor(readonly props: ValidatedProviderRetrievalProps) {}
 }
 
 export type ProviderRetrievalProps = {
@@ -95,7 +116,7 @@ export type ProviderRetrievalProps = {
   startedAt: string
 }
 
-type ConstProviderRetrievalProps = {
+type ValidatedProviderRetrievalProps = {
   autoretrieveInstanceId: string
   cid: string
   completed: boolean

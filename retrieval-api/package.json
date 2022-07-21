@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "mocha": "mocha -r esm -r ts-node/register",
-    "test": "yarn run mocha test/**/*.test.ts"
+    "test": "yarn run mocha \"test/**/*.test.ts\""
   },
   "devDependencies": {
     "@aws-cdk/aws-apigateway": "1.163.1",
@@ -16,10 +16,12 @@
     "@types/mocha": "9.1.1",
     "@types/node": "18.0.3",
     "@types/pg": "8.6.5",
+    "@types/sinon": "10.0.13",
     "aws-cdk": "2.31.1",
     "chai": "4.3.6",
     "esm": "3.2.25",
     "mocha": "10.0.0",
+    "sinon": "14.0.0",
     "ts-node": "10.8.2",
     "typescript": "4.7.4"
   },

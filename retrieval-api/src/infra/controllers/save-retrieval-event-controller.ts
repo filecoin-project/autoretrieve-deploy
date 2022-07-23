@@ -34,6 +34,7 @@ export class SaveRetrievalEventController {
 
 export type SaveRetrievalEventControllerEvent = {
   retrievalId: string
+  instanceId: string
   cid: string
   storageProviderId?: string
   phase: string

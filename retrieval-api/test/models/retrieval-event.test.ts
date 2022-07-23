@@ -6,6 +6,7 @@ import { ValidationError } from "../../src/models/validation-error";
 
 const minimumProps: RetrievalEventProps = {
   retrievalId: "test retrieval ID",
+  instanceId: "test instance ID",
   cid: "test cid",
   phase: Phase.VALUES[0],
   phaseStartTime: "1970-01-01T00:00:00.000Z",

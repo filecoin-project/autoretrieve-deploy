@@ -7,6 +7,7 @@ import { ValidationError } from "./validation-error";
 export class RetrievalEvent {
   public static create(props: RetrievalEventProps): RetrievalEvent | ValidationError {
     if(!props.retrievalId) return new ValidationError("retrievalId is required.");
+    if(!props.instanceId) return new ValidationError("instanceId is required.");
     if(!props.cid) return new ValidationError("cid is required.");
     if(!props.phase) return new ValidationError("phase is required.");
     if(!props.phaseStartTime) return new ValidationError("phaseStartTime is required.");
@@ -47,6 +48,10 @@ export class RetrievalEvent {
     return this.props.retrievalId;
   }
 
+  get instanceId(): string {
+    return this.props.instanceId;
+  }
+
   get cid(): string {
     return this.props.cid;
   }
@@ -82,6 +87,7 @@ export class RetrievalEvent {
 
 export type RetrievalEventProps = {
   retrievalId: string
+  instanceId: string
   cid: string
   storageProviderId?: string
   phase: string
@@ -93,6 +99,7 @@ export type RetrievalEventProps = {
 
 type ValidatedRetrievalEventProps = {
   retrievalId: string
+  instanceId: string
   cid: string
   storageProviderId?: string
   phase: Phase

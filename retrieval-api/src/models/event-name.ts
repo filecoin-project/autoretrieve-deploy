@@ -1,7 +1,7 @@
 import { ValidationError } from "./validation-error";
 
 export class EventName {
-  public static VALUES = ["connected", "query-asked", "proposed", "accepted", "first-byte-received", "phase-failed", "succeeded"];
+  public static VALUES = ["connected", "query-asked", "proposed", "accepted", "first-byte-received", "failure", "success"];
 
   public static create(value: string): EventName | ValidationError {
     if(!EventName.VALUES.includes(value)) {

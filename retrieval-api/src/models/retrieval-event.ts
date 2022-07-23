@@ -13,7 +13,6 @@ export class RetrievalEvent {
     if(!props.phaseStartTime) return new ValidationError("phaseStartTime is required.");
     if(!props.eventName) return new ValidationError("eventName is required.");
     if(!props.eventTime) return new ValidationError("eventTime is required.");
-    if(!props.eventDetails) return new ValidationError("eventDetails is required.");
 
     const phase = Phase.create(props.phase);
     if(phase instanceof ValidationError) {
@@ -76,8 +75,8 @@ export class RetrievalEvent {
     return this.props.eventTime;
   }
 
-  get eventDetails() {
-    return this.props.eventDetails;
+  get eventDetails(): any | undefined {
+    return this.props?.eventDetails;
   }
 
 

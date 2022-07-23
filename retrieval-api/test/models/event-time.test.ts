@@ -14,6 +14,11 @@ describe("EventTime", () => {
     it("returns a ValidationError for invalid values", () => {
       const eventTime = EventTime.create("not a date string");
       expect(eventTime).to.be.instanceOf(ValidationError, "Invalid values should return a ValidationError.");
+
+      // Try an undefined value
+      let dateStr: string = undefined as unknown as string;
+      const eventTime2 = EventTime.create(dateStr);
+      expect(eventTime2).to.be.instanceOf(ValidationError, "Invalid values should return a ValidationError.");
     });
   });
 });

@@ -14,6 +14,11 @@ describe("PhaseStartTime", () => {
     it("returns a ValidationError for invalid values", () => {
       const phaseStartTime = PhaseStartTime.create("not a date string");
       expect(phaseStartTime).to.be.instanceOf(ValidationError, "Invalid values should return a ValidationError.");
+
+      // Try an undefined value
+      let dateStr: string = undefined as unknown as string;
+      const phaseStartTime2 = PhaseStartTime.create(dateStr);
+      expect(phaseStartTime2).to.be.instanceOf(ValidationError, "Invalid values should return a ValidationError.");
     });
   });
 });

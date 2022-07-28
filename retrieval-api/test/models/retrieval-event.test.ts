@@ -11,8 +11,7 @@ const minimumProps: RetrievalEventProps = {
   phase: Phase.VALUES[0],
   phaseStartTime: "1970-01-01T00:00:00.000Z",
   eventName: EventName.VALUES[0],
-  eventTime: "1970-01-02T00:00:00.000Z",
-  eventDetails: {}
+  eventTime: "1970-01-02T00:00:00.000Z"
 };
 
 describe("RetrievalEvent", () => {

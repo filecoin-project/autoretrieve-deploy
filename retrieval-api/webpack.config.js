@@ -4,6 +4,7 @@ const path = require("path");
 
 // The name of the lambdas and their respective file locations
 const entries = {
+  BasicAuthLambdaAuthorizer: "./src/infra/lambdas/BasicAuthLambdaAuthorizer.ts",
   SaveRetrievalEventLambda: "./src/infra/lambdas/SaveRetrievalEventLambda.ts"
 };
 
@@ -25,7 +26,8 @@ module.exports = () => {
         openAnalyzer: false
       }),
       // Ignores the pg-native package that comes with the postgres
-      new IgnorePlugin({ resourceRegExp: /^pg-native$/ })
+      new IgnorePlugin({ resourceRegExp: /^pg-native$/ }),
+      new IgnorePlugin({ resourceRegExp: /^aws-crt$/ })
     ],
     optimization: {
       minimize: false,

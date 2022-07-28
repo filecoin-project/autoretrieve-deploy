@@ -5,4 +5,4 @@ import { PostgresRetrievalEventRepo } from "../repos/postgres-retrieval-event-re
 const retrievalEventRepo = new PostgresRetrievalEventRepo();
 const useCase = new SaveRetrievalEvent({ retrievalEventRepo });
 
-exports.SaveProviderRetrieval = new SaveRetrievalEventController(useCase).handler;
+exports.SaveRetrievalEventLambda = new SaveRetrievalEventController(useCase).handler;

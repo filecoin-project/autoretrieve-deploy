@@ -1,3 +1,4 @@
+import { APIGatewayProxyEvent } from "aws-lambda";
 import { RetrievalEvent } from "../../models/retrieval-event";
 import { ValidationError } from "../../models/validation-error";
 import { SaveRetrievalEvent } from "../../use-cases/save-retrieval-event";
@@ -5,8 +6,20 @@ import { SaveRetrievalEvent } from "../../use-cases/save-retrieval-event";
 export class SaveRetrievalEventController {
   constructor(private useCase: SaveRetrievalEvent) {}
 
-  public handler = async (event: SaveRetrievalEventControllerEvent): Promise<any> => {
-    const retrievalEvent = RetrievalEvent.create(event);
+  public handler = async (event: APIGatewayProxyEvent): Promise<any> => {
+    // Either parse the body or provide an empty body
+    let body;
+    if(event.body === null) {
+      body = {};
+    } else {
+      try {
+        body = JSON.parse(event.body);
+      } catch {
+        body = {};
+      }
+    }
+
+    const retrievalEvent = RetrievalEvent.create(body);
     if(retrievalEvent instanceof ValidationError) {
       return {
         statusCode: 400,
@@ -19,7 +32,7 @@ export class SaveRetrievalEventController {
     }
 
     try {
-      await this.useCase.execute({ retrievalEvent });
+      // await this.useCase.execute({ retrievalEvent });
       return {
         statusCode: 201
       }
@@ -32,14 +45,4 @@ export class SaveRetrievalEventController {
   }
 }
 
-export type SaveRetrievalEventControllerEvent = {
-  retrievalId: string
-  instanceId: string
-  cid: string
-  storageProviderId?: string
-  phase: string
-  phaseStartTime: string
-  eventName: string
-  eventTime: string
-  eventDetails: any
-};
+export type SaveRetrievalEventControllerEvent = APIGatewayProxyEvent;

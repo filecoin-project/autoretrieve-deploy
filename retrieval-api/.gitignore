@@ -3,3 +3,4 @@ cdk.out/
 dist/
 .yarn/
 !.yarn/releases
+yarn-error.log

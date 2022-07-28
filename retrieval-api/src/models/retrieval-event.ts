@@ -6,32 +6,32 @@ import { ValidationError } from "./validation-error";
 
 export class RetrievalEvent {
   public static create(props: RetrievalEventProps): RetrievalEvent | ValidationError {
-    if(!props.retrievalId) return new ValidationError("retrievalId is required.");
-    if(!props.instanceId) return new ValidationError("instanceId is required.");
-    if(!props.cid) return new ValidationError("cid is required.");
-    if(!props.phase) return new ValidationError("phase is required.");
-    if(!props.phaseStartTime) return new ValidationError("phaseStartTime is required.");
-    if(!props.eventName) return new ValidationError("eventName is required.");
-    if(!props.eventTime) return new ValidationError("eventTime is required.");
+    if(!props.retrievalId) return new ValidationError("Property retrievalId is required.");
+    if(!props.instanceId) return new ValidationError("Property instanceId is required.");
+    if(!props.cid) return new ValidationError("Property cid is required.");
+    if(!props.phase) return new ValidationError("Property phase is required.");
+    if(!props.phaseStartTime) return new ValidationError("Property phaseStartTime is required.");
+    if(!props.eventName) return new ValidationError("Property eventName is required.");
+    if(!props.eventTime) return new ValidationError("Property eventTime is required.");
 
     const phase = Phase.create(props.phase);
     if(phase instanceof ValidationError) {
-      return new ValidationError(`phase failed validation. ${phase.message}`, phase.details);
+      return new ValidationError(`Property phase failed validation. ${phase.message}`, phase.details);
     }
 
     const phaseStartTime = PhaseStartTime.create(props.phaseStartTime);
     if(phaseStartTime instanceof ValidationError) {
-      return new ValidationError(`phaseStartTime failed validation. ${phaseStartTime.message}`, phaseStartTime.details);
+      return new ValidationError(`Property phaseStartTime failed validation. ${phaseStartTime.message}`, phaseStartTime.details);
     }
 
     const eventName = EventName.create(props.eventName);
     if(eventName instanceof ValidationError) {
-      return new ValidationError(`eventName failed validation. ${eventName.message}`, eventName.details);
+      return new ValidationError(`Property eventName failed validation. ${eventName.message}`, eventName.details);
     }
 
     const eventTime = EventTime.create(props.eventTime);
     if(eventTime instanceof ValidationError) {
-      return new ValidationError(`eventTime failed validation. ${eventTime.message}`, eventTime.details);
+      return new ValidationError(`Property eventTime failed validation. ${eventTime.message}`, eventTime.details);
     }
 
     return new RetrievalEvent({
@@ -93,7 +93,7 @@ export type RetrievalEventProps = {
   phaseStartTime: string
   eventName: string
   eventTime: string
-  eventDetails: any
+  eventDetails?: any
 }
 
 type ValidatedRetrievalEventProps = {
@@ -105,5 +105,5 @@ type ValidatedRetrievalEventProps = {
   phaseStartTime: PhaseStartTime
   eventName: EventName
   eventTime: EventTime
-  eventDetails: any
+  eventDetails?: any
 }

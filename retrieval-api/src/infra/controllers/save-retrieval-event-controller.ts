@@ -32,7 +32,7 @@ export class SaveRetrievalEventController {
     }
 
     try {
-      // await this.useCase.execute({ retrievalEvent });
+      await this.useCase.execute({ retrievalEvent });
       return {
         statusCode: 201
       }

@@ -1,15 +1,13 @@
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 
-const API_ENDPOINT_ARN = process.env.API_ENDPOINT_ARN;
-if(!API_ENDPOINT_ARN) throw Error("API_ENDPOINT_ARN environment variable is undefined.");
-
-const API_KEY_SECRET_ARN = process.env.API_KEY_SECRET_ARN;
-if(!API_KEY_SECRET_ARN) throw Error("API_KEY_SECRET_ARN environment variable is undefined.");
-
 export class BasicAuthLambdaAuthorizer {
+  private apiEndpointArn: string;
+  private apiKeySecretArn: string;
   private secretsManager: SecretsManager;
 
   constructor(props: BasicAuthLambdaAuthorizerProps) {
+    this.apiEndpointArn = props.apiEndpointArn;
+    this.apiKeySecretArn = props.apiKeySecretArn;
     this.secretsManager = props.secretsManager;
   }
 
@@ -23,7 +21,7 @@ export class BasicAuthLambdaAuthorizer {
     try {
       storedApiKey = await this.getApiKey();
     } catch {
-      console.error(`Could not get secret value from secret: ${API_KEY_SECRET_ARN}.`);
+      console.error(`Could not get secret value from secret: ${this.apiKeySecretArn}.`);
       return this.generatePolicy(false);
     }
 
@@ -45,7 +43,7 @@ export class BasicAuthLambdaAuthorizer {
           {
             "Action": "execute-api:Invoke",
             "Effect": allow ? "Allow" : "Deny",
-            "Resource": API_ENDPOINT_ARN
+            "Resource": this.apiEndpointArn
           }
         ]
       }
@@ -58,11 +56,13 @@ export class BasicAuthLambdaAuthorizer {
    * @returns The stored API key, or undefined if the API key secret cannot be found
    */
   private async getApiKey(): Promise<string | undefined> {
-    const secret = await this.secretsManager.getSecretValue({ SecretId: API_KEY_SECRET_ARN });
+    const secret = await this.secretsManager.getSecretValue({ SecretId: this.apiKeySecretArn });
     return secret?.SecretString;
   }
 }
 
 type BasicAuthLambdaAuthorizerProps = {
+  apiEndpointArn: string
+  apiKeySecretArn: string
   secretsManager: SecretsManager
 }

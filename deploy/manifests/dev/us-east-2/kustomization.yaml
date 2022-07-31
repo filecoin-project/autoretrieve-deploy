@@ -16,6 +16,11 @@ secretGenerator:
   behavior: replace
   files:
   - peerkey.encrypted
+secretGenerator:
+- name: autoretrieve-authorization
+  behavior: replace
+  files:
+  - eventrecorderauth.encrypted
 images:
 - name: autoretrieve
   newName: 407967248065.dkr.ecr.us-east-2.amazonaws.com/autoretrieve/autoretrieve # {"$imagepolicy": "autoretrieve:autoretrieve:name"}

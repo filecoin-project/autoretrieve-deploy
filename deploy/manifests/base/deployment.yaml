@@ -38,6 +38,9 @@ spec:
             - name: identity
               mountPath: /data/.autoretrieve/peerkey
               subPath: peerkey
+            - name: authorization
+              mountPath: /data/.autoretrieve/eventrecorderauth
+              subPath: eventrecorderauth
           resources:
             limits:
               memory: 32Gi
@@ -53,3 +56,9 @@ spec:
             items:
               - key: peerkey.encrypted
                 path: ./peerkey
+        - name: authorization
+          secret:
+            secretName: autoretrieve-authorization
+            items:
+              - key: eventrecorderauth.encrypted
+                path: ./eventrecorderauth

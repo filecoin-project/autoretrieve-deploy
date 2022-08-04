@@ -10,7 +10,7 @@ resources:
 configMapGenerator:
   - name: autoretrieve-config
     files:
-      - config.yaml.erb
+      - config.yaml
   - name: autoretrieve-env
     literals:
       - FULLNODE_API_INFO=wss://api.chain.love

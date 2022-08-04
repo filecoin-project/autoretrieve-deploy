@@ -19,3 +19,8 @@ secretGenerator:
   - name: autoretrieve-identity
     files:
       - peerkey.encrypted
+
+secretGenerator:
+  - name: autoretrieve-authorization
+    files:
+      - eventrecorderauth.encrypted

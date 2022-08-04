@@ -17,3 +17,4 @@ default-miner-config:
     max-concurrent-retrievals: 1
 miner-configs: {}
 event-recorder-endpoint-url: https://vtz1qw149h.execute-api.us-east-2.amazonaws.com
+instance-name: bedrock-dev

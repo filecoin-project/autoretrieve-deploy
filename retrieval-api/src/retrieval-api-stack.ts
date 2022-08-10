@@ -7,12 +7,13 @@ import {
   Port, SecurityGroup, SubnetType,
   Vpc
 } from "aws-cdk-lib/aws-ec2";
-import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
+import { Alias, Code, Function, Runtime, Version } from "aws-cdk-lib/aws-lambda";
 import { LambdaIntegration, RequestAuthorizer, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Credentials, DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
 import { Grant, IPrincipal } from "aws-cdk-lib/aws-iam";
 import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from "aws-cdk-lib/custom-resources";
+import { Lambda } from "aws-cdk-lib/aws-ses-actions";
 
 export class RetrievalEventsStack extends Stack {
   constructor(scope: Construct, id: string, props: RetrievalEventsStackProps) {
@@ -116,6 +117,16 @@ export class RetrievalEventsStack extends Stack {
     grantConnect(this, database, dbUsername, saveRetrievalEventFn.role?.grantPrincipal!);
     database.secret?.grantRead(saveRetrievalEventFn);
 
+    // Setup v1 of retrieval-events lambda
+    const saveRetrievalEventFnV1 = new Version(this, "SaveRetrievalEventFunctionV1", {
+      lambda: saveRetrievalEventFn
+    });
+    const saveRetrievalEventFnV1Alias = new Alias(this, "SaveRetrievalEventFunctionV1Alias", {
+      aliasName: "SaveRetreivalEventFunctionV1",
+      version: saveRetrievalEventFnV1
+    });
+
+
     // API for retrieval events
     const api = new RestApi(this, "RestApi", {
       restApiName: `${prefix}-RestApi`
@@ -123,7 +134,7 @@ export class RetrievalEventsStack extends Stack {
 
     // Setup the API resource for POSTing retrieval events
     const retrievalEventsResource = api.root.addResource("retrieval-events");
-    const postRetrievalEventsIntegration = new LambdaIntegration(saveRetrievalEventFn);
+    const postRetrievalEventsIntegration = new LambdaIntegration(saveRetrievalEventFnV1Alias);
 
     // Generate secret string for API Key
     const apiKeySecret = new Secret(this, "ApiKeySecret", {

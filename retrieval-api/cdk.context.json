@@ -9,5 +9,9 @@
     "us-east-2a",
     "us-east-2b",
     "us-east-2c"
-  ]
+  ],
+  "hosted-zone:account=407967248065:domainName=dev.cid.contact:region=us-east-2": {
+    "Id": "/hostedzone/Z0346653G546POP574CS",
+    "Name": "dev.cid.contact."
+  }
 }

@@ -1,12 +1,6 @@
 import { Construct } from "constructs";
 import { CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
-import {
-  AmazonLinuxGeneration, AmazonLinuxImage, CfnKeyPair,
-  Instance, InstanceClass, InstanceSize,
-  InstanceType, InterfaceVpcEndpointAwsService, Peer,
-  Port, SecurityGroup, SubnetType,
-  Vpc
-} from "aws-cdk-lib/aws-ec2";
+import { AmazonLinuxGeneration, AmazonLinuxImage, CfnKeyPair, Instance, InstanceClass, InstanceSize, InstanceType, InterfaceVpcEndpointAwsService, Peer, Port, SecurityGroup, SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
 import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import { LambdaIntegration, RequestAuthorizer, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
@@ -14,14 +8,19 @@ import { Credentials, DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVe
 import { Grant, IPrincipal } from "aws-cdk-lib/aws-iam";
 import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from "aws-cdk-lib/custom-resources";
 
-export class RetrievalEventsStack extends Stack {
-  constructor(scope: Construct, id: string, props: RetrievalEventsStackProps) {
+export class DatabaseStack extends Stack {
+  readonly database: DatabaseInstance;
+  readonly databaseUsername: string;
+  readonly securityGroup: SecurityGroup;
+  readonly vpc: Vpc;
+
+  constructor(scope: Construct, id: string, props: DatabaseStackProps) {
     super(scope, id, props);
 
     const prefix = "AutoretrieveRetrievalEvents";
 
     // All resources should be in this VPC
-    const vpc = new Vpc(this, "Vpc", {
+    this.vpc = new Vpc(this, "Vpc", {
       natGateways: 0,
       maxAzs: 3,
       subnetConfiguration: [
@@ -37,16 +36,22 @@ export class RetrievalEventsStack extends Stack {
       vpcName: `${prefix}-Vpc`
     });
     // So that our lambdas can access secrets manager from within the private subnet
-    vpc.addInterfaceEndpoint('SecretsManagerEndpoint', {
+    this.vpc.addInterfaceEndpoint('SecretsManagerEndpoint', {
       service: InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
-    })
+    });
+
+    this.securityGroup = new SecurityGroup(this, "DatabaseSecurityGroup", {
+      vpc: this.vpc
+    });
+    this.securityGroup.addIngressRule(this.securityGroup, Port.tcp(5432));
 
     // Create the database
-    const database = new DatabaseInstance(this, "Database", {
-      vpc,
+    this.database = new DatabaseInstance(this, "Database", {
+      vpc: this.vpc,
       vpcSubnets: {
         subnetType: SubnetType.PRIVATE_ISOLATED
       },
+      securityGroups: [this.securityGroup],
       engine: DatabaseInstanceEngine.postgres({
         version: PostgresEngineVersion.VER_14_2
       }),
@@ -57,23 +62,24 @@ export class RetrievalEventsStack extends Stack {
       databaseName: `${prefix}Db`,
       publiclyAccessible: false
     });
+
     // Output the Database endpoint and secret name
     new CfnOutput(this, "DatabaseEndpoint", {
-      value: database.instanceEndpoint.hostname,
+      value: this.database.instanceEndpoint.hostname,
     });
     new CfnOutput(this, "DatabaseSecretName", {
-      value: database.secret?.secretName!
+      value: this.database.secret?.secretName!
     });
     // We use the DB username in a few places
-    const dbUsername = database.secret?.secretValueFromJson("username").toString()!;
+    this.databaseUsername = this.database.secret?.secretValueFromJson("username").toString()!;
 
     // Security group for EC2
-    const ec2SecurityGroup = new SecurityGroup(this, "Ec2SecurityGroup", { vpc });
+    const ec2SecurityGroup = new SecurityGroup(this, "Ec2SecurityGroup", { vpc: this.vpc });
     // Allow SSH connects to the EC2 instance from anywhere
     ec2SecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(22));
     // Create the EC2 instance
     const ec2 = new Instance(this, "Ec2Instance", {
-      vpc,
+      vpc: this.vpc,
       vpcSubnets: {
         subnetType: SubnetType.PUBLIC
       },
@@ -85,7 +91,7 @@ export class RetrievalEventsStack extends Stack {
       keyName: "autoretrieve-retrieval-events-key-pair"
     });
     // Give the EC2 instance network access to the database
-    database.connections.allowFrom(ec2, Port.tcp(5432));
+    this.database.connections.allowFrom(ec2, Port.tcp(5432));
 
     new CfnKeyPair(this, "Ec2KeyPair", { keyName: "autoretrieve-retrieval-events-key-pair" });
 
@@ -96,25 +102,26 @@ export class RetrievalEventsStack extends Stack {
       handler: "index.SaveRetrievalEventLambda",
       runtime: Runtime.NODEJS_16_X,
       environment: {
-        DB_HOST: database.secret?.secretValueFromJson("host").toString()!,
-        DB_PORT: database.secret?.secretValueFromJson("port").toString()!,
+        DB_HOST: this.database.secret?.secretValueFromJson("host").toString()!,
+        DB_PORT: this.database.secret?.secretValueFromJson("port").toString()!,
         // Passing the password via environment variable is not ideal, but it allows us to use connection pools effeciently
-        DB_PASSWORD: database.secret?.secretValueFromJson("password").toString()!,
-        DB_USERNAME: dbUsername,
-        DB_NAME: database.secret?.secretValueFromJson("dbname").toString()!
+        DB_PASSWORD: this.database.secret?.secretValueFromJson("password").toString()!,
+        DB_USERNAME: this.databaseUsername,
+        DB_NAME: this.database.secret?.secretValueFromJson("dbname").toString()!
       },
       memorySize: 1024,
       timeout: Duration.seconds(5),
-      vpc,
+      vpc: this.vpc,
       vpcSubnets: {
         subnetType: SubnetType.PRIVATE_ISOLATED
       }
     });
     // Give the function network access to the database
-    database.connections.allowFrom(saveRetrievalEventFn, Port.tcp(5432));
+    this.database.connections.allowFrom(saveRetrievalEventFn, Port.tcp(5432));
+
     // Give the function permission to access the database and database credentials
-    grantConnect(this, database, dbUsername, saveRetrievalEventFn.role?.grantPrincipal!);
-    database.secret?.grantRead(saveRetrievalEventFn);
+    grantConnect(this, this.database, this.databaseUsername, saveRetrievalEventFn.role?.grantPrincipal!);
+    this.database.secret?.grantRead(saveRetrievalEventFn);
 
     // API for retrieval events
     const api = new RestApi(this, "RestApi", {
@@ -146,7 +153,7 @@ export class RetrievalEventsStack extends Stack {
       },
       memorySize: 1024,
       timeout: Duration.seconds(5),
-      vpc,
+      vpc: this.vpc,
       vpcSubnets: {
         subnetType: SubnetType.PRIVATE_ISOLATED
       }
@@ -218,4 +225,4 @@ function grantConnect(scope: Stack, db: DatabaseInstance, dbUsername: string, gr
   });
 }
 
-interface RetrievalEventsStackProps extends StackProps {}
+interface DatabaseStackProps extends StackProps {}

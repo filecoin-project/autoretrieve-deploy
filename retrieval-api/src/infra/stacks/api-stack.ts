@@ -1,8 +1,8 @@
 import { Duration, Stack, StackProps } from "aws-cdk-lib";
-import { LambdaIntegration, RequestAuthorizer, RestApi } from "aws-cdk-lib/aws-apigateway";
+import { IRestApi, LambdaIntegration, RequestAuthorizer, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { Port, SecurityGroup, SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
-import { Grant, IPrincipal } from "aws-cdk-lib/aws-iam";
-import { Alias, Code, Function, Runtime, Version } from "aws-cdk-lib/aws-lambda";
+import { Grant, IPrincipal, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import { DatabaseInstance } from "aws-cdk-lib/aws-rds";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from "aws-cdk-lib/custom-resources";
@@ -24,52 +24,7 @@ export class ApiStack extends Stack {
 
     const prefix = Stack.of(this).stackName;
 
-    // API root
-    const api = new RestApi(this, "RestApi", {
-      restApiName: `${prefix}-RestApi`
-    });
-
-    // Setup the API resource for POSTing retrieval events
-    const v1 = api.root.addResource("v1");
-    const v1RetrievalEvents = v1.addResource("retrieval-events");
-
-    // Generate secret string for API Key
-    const apiKeySecret = new Secret(this, "ApiKeySecret", {
-      secretName: `${prefix}-ApiKeySecret`,
-      description: "The API key for authorizing with the Autoretrieve Retrieval Events API.",
-      generateSecretString: {
-        excludePunctuation: true
-      }
-    });
-
-    // Function for basic authorization
-    const basicAuthFn = new Function(this, "BasicAuthLambdaAuthorizerFunction", {
-      functionName: `${prefix}-BasicAuthLambdaAuthorizer`,
-      code: Code.fromAsset("dist/lambdas/BasicAuthLambdaAuthorizer"),
-      handler: "index.BasicAuthLambdaAuthorizer",
-      runtime: Runtime.NODEJS_16_X,
-      environment: {
-        API_ENDPOINT_ARN: `arn:aws:execute-api:${this.region}:${this.account}:${api.restApiId}/*/POST/retrieval-events`,
-        API_KEY_SECRET_ARN: apiKeySecret.secretFullArn!
-      },
-      memorySize: 1024,
-      timeout: Duration.seconds(5),
-      vpc: props.vpc,
-      vpcSubnets: {
-        subnetType: SubnetType.PRIVATE_ISOLATED
-      }
-    });
-    // Allow the basic auth function to read the secret
-    apiKeySecret.grantRead(basicAuthFn);
-
-    // The basic auth authorizer
-    const basicAuthAuthorizer = new RequestAuthorizer(this, "BasicAuthAuthorizer", {
-      authorizerName: `${prefix}-BasicAuthAuthorizer`,
-      handler: basicAuthFn,
-      identitySources: [],
-      resultsCacheTtl: Duration.minutes(0)
-    });
-
+    // The security group for the lambdas
     this.securityGroup = new SecurityGroup(this, "LambdaDatabaseProxy", {
       vpc: props.vpc
     });
@@ -102,18 +57,61 @@ export class ApiStack extends Stack {
     // Give the function permission to access the database and database credentials
     grantConnect(this, props.database, props.databaseUsername, saveRetrievalEventFn.role?.grantPrincipal!);
     props.database.secret?.grantRead(saveRetrievalEventFn);
-    
-    // Setup v1 of retrieval-events lambda
-    const saveRetrievalEventFnV1 = new Version(this, "SaveRetrievalEventFunctionV1", {
-      lambda: saveRetrievalEventFn
+    // Give the other apig stages the ability to invoke the lambda
+    saveRetrievalEventFn.grantInvoke(new ServicePrincipal("apigateway.amazonaws.com"));
+
+    // Generate secret string for API Key
+    const apiKeySecret = new Secret(this, "ApiKeySecret", {
+      secretName: `${prefix}-ApiKeySecret`,
+      description: "The API key for authorizing with the Autoretrieve Retrieval Events API.",
+      generateSecretString: {
+        excludePunctuation: true
+      }
     });
-    const saveRetrievalEventFnV1Alias = new Alias(this, "SaveRetrievalEventFunctionV1Alias", {
-      aliasName: "SaveRetreivalEventFunctionV1",
-      version: saveRetrievalEventFnV1
+
+    /**********************************************
+      API
+    ***********************************************/
+
+    // API root
+    const api = new RestApi(this, "RestApi", {
+      restApiName: `${prefix}-RestApi`
     });
-  
+
+    // Function for basic authorization
+    const basicAuthFn = new Function(this, "BasicAuthLambdaAuthorizerFunction", {
+      functionName: `${prefix}-BasicAuthLambdaAuthorizer`,
+      code: Code.fromAsset("dist/lambdas/BasicAuthLambdaAuthorizer"),
+      handler: "index.BasicAuthLambdaAuthorizer",
+      runtime: Runtime.NODEJS_16_X,
+      environment: {
+        API_ENDPOINT_ARN: `arn:aws:execute-api:${this.region}:${this.account}:${api.restApiId}/*/POST/retrieval-events`,
+        API_KEY_SECRET_ARN: apiKeySecret.secretFullArn!
+      },
+      memorySize: 1024,
+      timeout: Duration.seconds(5),
+      vpc: props.vpc,
+      vpcSubnets: {
+        subnetType: SubnetType.PRIVATE_ISOLATED
+      }
+    });
+    // Allow the basic auth function to read the secret
+    apiKeySecret.grantRead(basicAuthFn);
+
+    // The basic auth authorizer for the API routes
+    const basicAuthAuthorizer = new RequestAuthorizer(this, "BasicAuthAuthorizer", {
+      authorizerName: `${prefix}-BasicAuthAuthorizer`,
+      handler: basicAuthFn,
+      identitySources: [],
+      resultsCacheTtl: Duration.minutes(0)
+    });
+
+    // Setup the API resource for POSTing retrieval events
+    const v1 = api.root.addResource("v1");
+    const v1RetrievalEvents = v1.addResource("retrieval-events");
+
     // The POST method for saving retrieval events
-    v1RetrievalEvents.addMethod("POST", new LambdaIntegration(saveRetrievalEventFnV1Alias), {
+    v1RetrievalEvents.addMethod("POST", new LambdaIntegration(saveRetrievalEventFn), {
       authorizer: basicAuthAuthorizer
     });
   }

@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { RetrievalEvent } from "../../models/retrieval-event";
+import { RetrievalEventBatch } from "../../models/retrieval-event-batch";
 import { ValidationError } from "../../models/validation-error";
 import { SaveRetrievalEvent } from "../../use-cases/save-retrieval-event";
 
@@ -21,21 +21,21 @@ export class SaveRetrievalEventController {
       }
     }
 
-    const retrievalEvent = RetrievalEvent.create(body);
-    if(retrievalEvent instanceof ValidationError) {
-      console.debug("Could not create Retrieval Event instance.", retrievalEvent.message, retrievalEvent.details);
+    const retrievalEventBatch = RetrievalEventBatch.create(body);
+    if(retrievalEventBatch instanceof ValidationError) {
+      console.debug("Could not create Retrieval Event Batch instance.", retrievalEventBatch.message, retrievalEventBatch.details);
       return {
         statusCode: 400,
         body: JSON.stringify({
           error: "ValidationError",
-          errorMessage: retrievalEvent.message,
-          errorDetails: retrievalEvent.details
+          errorMessage: retrievalEventBatch.message,
+          errorDetails: retrievalEventBatch.details
         })
       };
     }
 
     try {
-      await this.useCase.execute({ retrievalEvent });
+      await this.useCase.execute({ retrievalEventBatch });
       return {
         statusCode: 201
       }

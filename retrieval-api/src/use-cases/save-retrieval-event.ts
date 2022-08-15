@@ -1,4 +1,5 @@
 import { RetrievalEvent } from "../models/retrieval-event";
+import { RetrievalEventBatch } from "../models/retrieval-event-batch";
 import { RetrievalEventRepo } from "../repos/retrieval-event-repo";
 
 export class SaveRetrievalEvent {
@@ -10,7 +11,7 @@ export class SaveRetrievalEvent {
 
   async execute(request: SaveRetrievalEventDto): Promise<void> {
     try {
-      await this.retrievalEventRepo.save(request.retrievalEvent)
+      await this.retrievalEventRepo.saveBatch(request.retrievalEventBatch)
     } catch(err) {
       console.error("Could not save retrieval event.");
       throw err;
@@ -23,5 +24,5 @@ type SaveRetrievalEventProps = {
 }
 
 type SaveRetrievalEventDto = {
-  retrievalEvent: RetrievalEvent
+  retrievalEventBatch: RetrievalEventBatch
 }

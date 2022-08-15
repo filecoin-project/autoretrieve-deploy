@@ -1,6 +1,7 @@
 import { RetrievalEvent } from "../../models/retrieval-event";
 import { RetrievalEventRepo } from "../../repos/retrieval-event-repo";
 import { Pool, PoolConfig } from "pg";
+import { RetrievalEventBatch } from "../../models/retrieval-event-batch";
 
 export class PostgresRetrievalEventRepo implements RetrievalEventRepo {
   private pool: Pool;
@@ -37,6 +38,34 @@ export class PostgresRetrievalEventRepo implements RetrievalEventRepo {
       console.debug("Saved retrieval event.");
     } catch(err) {
       console.error("Could not execute insert query for retrieval event.");
+      throw err;
+    }
+  }
+
+  async saveBatch(retrievalEventBatch: RetrievalEventBatch): Promise<void> {
+    const queryStr = `
+      INSERT INTO retrieval_events(
+        retrieval_id,
+        instance_id,
+        cid,
+        storage_provider_id,
+        phase,
+        phase_start_time,
+        event_name,
+        event_time,
+        event_details
+      )
+      VALUES ${retrievalEventBatch.events.map(() => "(?,?,?,?,?,?,?,?,?)").join(",")};
+    `;
+    const values = retrievalEventBatch.events.reduce((acc, e) =>  {
+      return acc.concat([e.retrievalId, e.instanceId, e.cid, e.storageProviderId, e.phase, e.phaseStartTime.value, e.eventName.value, e.eventTime.value, e.eventDetails]);
+    }, [] as RetrievalEvent[]);
+
+    try {
+      await this.pool.query(queryStr, values);
+      console.debug(`Saved ${values.length} retrieval events.`);
+    } catch(err) {
+      console.error(`Could not execute insert query for ${values.length} retrieval events.`, { events: values });
       throw err;
     }
   }

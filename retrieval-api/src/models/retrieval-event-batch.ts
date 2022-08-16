@@ -20,7 +20,9 @@ export class RetrievalEventBatch {
       events.push(retrievalEvent);
     }
 
-    console.warn(`Could not validate entire event batch. ${ignoredEvents.length}/${props.events.length} were invalid and will be skipped.`, { ignoredEvents });
+    if (ignoredEvents.length > 0) {
+      console.warn(`Could not validate entire event batch. ${ignoredEvents.length}/${props.events.length} were invalid and will be skipped.`, { ignoredEvents });
+    }
     return new RetrievalEventBatch({ events });
   }
 

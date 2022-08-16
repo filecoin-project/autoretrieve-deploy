@@ -85,7 +85,7 @@ export class ApiStack extends Stack {
       handler: "index.BasicAuthLambdaAuthorizer",
       runtime: Runtime.NODEJS_16_X,
       environment: {
-        API_ENDPOINT_ARN: `arn:aws:execute-api:${this.region}:${this.account}:${api.restApiId}/*/POST/retrieval-events`,
+        API_ENDPOINT_ARN: `arn:aws:execute-api:${this.region}:${this.account}:${api.restApiId}/*/POST/v1/retrieval-events`,
         API_KEY_SECRET_ARN: apiKeySecret.secretFullArn!
       },
       memorySize: 1024,

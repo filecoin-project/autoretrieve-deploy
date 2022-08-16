@@ -16,5 +16,5 @@ default-miner-config:
     retrieval-timeout: 1m0s
     max-concurrent-retrievals: 1
 miner-configs: {}
-event-recorder-endpoint-url: https://vtz1qw149h.execute-api.us-east-2.amazonaws.com/prod/retrieval-events
+event-recorder-endpoint-url: https://cv6xplf91j.execute-api.us-east-2.amazonaws.com/prod/v1/retrieval-events
 instance-name: bedrock-dev

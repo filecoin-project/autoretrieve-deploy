@@ -1,11 +1,10 @@
-import { Stack, StackProps } from "aws-cdk-lib";
+import { CfnOutput, Stack, StackProps } from "aws-cdk-lib";
 import {
   AmazonLinuxGeneration, AmazonLinuxImage, CfnEIP, CfnKeyPair, Instance,
   InstanceClass, InstanceSize, InstanceType, Port,
   SecurityGroup, SubnetType, Vpc
 } from "aws-cdk-lib/aws-ec2";
 import { DatabaseInstance } from "aws-cdk-lib/aws-rds";
-import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { Construct } from "constructs";
 
 export interface ServerStackProps extends StackProps {
@@ -15,7 +14,6 @@ export interface ServerStackProps extends StackProps {
 }
 
 export class ServerStack extends Stack {
-  readonly aRecord: ARecord;
   readonly ec2: Instance;
   readonly elasticIp: CfnEIP;
   readonly securityGroup: SecurityGroup;
@@ -47,22 +45,28 @@ export class ServerStack extends Stack {
     this.ec2.connections.allowFromAnyIpv4(Port.tcp(22));
     // Allow database connection from pgAdmin to the database
 
-    // props.database.connections.allowFrom(this.ec2, Port.tcp(5432));
-
     // Give the EC2 instance an elastic IP so that we can point our domain at it
-    this.elasticIp = new CfnEIP(this, "Ec2ElasticIP", {
+    this.elasticIp = new CfnEIP(this, "Ec2ElasticIp", {
       instanceId: this.ec2.instanceId
     });
+    new CfnOutput(this, "Ec2AElasticIpAddress", {
+      value: this.elasticIp.ref
+    });
 
+    /*******
+     * NOTE: This A record was actually manually created to prevent
+     * downtime when migrating from a smaller instance to the new one
+     * this stack instantiates.
+     *******/
     // Reference the parent hosted zone
-    const parentZone = HostedZone.fromLookup(this, "DevCidContactZone", {
-      domainName: "dev.cid.contact" 
-    });
+    // const parentZone = HostedZone.fromLookup(this, "DevCidContactZone", {
+    //   domainName: "dev.cid.contact" 
+    // });
     // Point domain at elastic IP
-    this.aRecord = new ARecord(this, "ARecordEc2", {
-      recordName: "pgadmin.autoretrieve.dev.cid.contact",
-      target: RecordTarget.fromIpAddresses(this.elasticIp.ref),
-      zone: parentZone
-    });
+    // this.aRecord = new ARecord(this, "ARecordEc2", {
+    //   recordName: "pgadmin.autoretrieve.dev.cid.contact",
+    //   target: RecordTarget.fromIpAddresses(this.elasticIp.ref),
+    //   zone: parentZone
+    // });
   }
 }

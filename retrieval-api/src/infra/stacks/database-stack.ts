@@ -7,6 +7,8 @@ import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Credentials, DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
 import { Grant, IPrincipal } from "aws-cdk-lib/aws-iam";
 import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from "aws-cdk-lib/custom-resources";
+import { Rule, Schedule } from "aws-cdk-lib/aws-events";
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 
 export class DatabaseStack extends Stack {
   readonly database: DatabaseInstance;
@@ -72,6 +74,46 @@ export class DatabaseStack extends Stack {
     });
     // We use the DB username in a few places
     this.databaseUsername = this.database.secret?.secretValueFromJson("username").toString()!;
+
+    const deleteOldEventsLambda = new Function(this, "DeleteOldEventsLambda", {
+      functionName: `${prefix}-DeleteOldEventsLambda`,
+      code: Code.fromAsset("dist/lambdas/DeleteOldEventsLambda"),
+      handler: "index.DeleteOldEventsLambda",
+      runtime: Runtime.NODEJS_16_X,
+      environment: {
+        DB_HOST: this.database.secret?.secretValueFromJson("host").toString()!,
+        DB_PORT: this.database.secret?.secretValueFromJson("port").toString()!,
+        // Passing the password via environment variable is not ideal, but it allows us to use connection pools effeciently
+        DB_PASSWORD: this.database.secret?.secretValueFromJson("password").toString()!,
+        DB_USERNAME: this.databaseUsername,
+        DB_NAME: this.database.secret?.secretValueFromJson("dbname").toString()!
+      },
+      memorySize: 1024,
+      timeout: Duration.seconds(5),
+      vpc: this.vpc,
+      vpcSubnets: {
+        subnetType: SubnetType.PRIVATE_ISOLATED
+      }
+    });
+    // Give the function network access to the database
+    this.database.connections.allowFrom(deleteOldEventsLambda, Port.tcp(5432));
+    // Give the function permission to access the database and database credentials
+    grantConnect(this, this.database, this.databaseUsername, deleteOldEventsLambda.role?.grantPrincipal!);
+    this.database.secret?.grantRead(deleteOldEventsLambda);
+
+    const deleteOldEventsRule = new Rule(this, "DeleteOldEventsRule", {
+      description: "Scheduled rule for delete old retrieval events",
+      ruleName: `${prefix}-DeleteOldEventsRule`,
+      // Once every day
+      schedule: Schedule.cron({
+        minute: "0",
+        hour: "0",
+        day: "*",
+        month: "*",
+        year: "*"
+      }),
+      targets: [new LambdaFunction(deleteOldEventsLambda)]
+    });
 
     // Security group for EC2
     const ec2SecurityGroup = new SecurityGroup(this, "Ec2SecurityGroup", { vpc: this.vpc });

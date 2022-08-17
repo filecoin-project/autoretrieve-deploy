@@ -15,6 +15,18 @@ export class PostgresRetrievalEventRepo implements RetrievalEventRepo {
     });
   }
 
+  async deleteOldEvents(): Promise<void> {
+    const queryStr = `DELETE FROM retrieval_events WHERE event_time <= (CURRENT_TIMESTAMP::date - '2 weeks'::interval);`;
+
+    try {
+      await this.pool.query(queryStr);
+      console.debug("Deleted old retrieval events.");
+    } catch(err) {
+      console.error("Could not execute delete old events query for retrieval events.");
+      throw err;
+    }
+  }
+
   async save(retrievalEvent: RetrievalEvent): Promise<void> {
     const queryStr = `
       INSERT INTO retrieval_events(

@@ -5,6 +5,7 @@ const path = require("path");
 // The name of the lambdas and their respective file locations
 const entries = {
   BasicAuthLambdaAuthorizer: "./src/infra/lambdas/BasicAuthLambdaAuthorizer.ts",
+  DeleteOldEventsLambda: "./src/infra/lambdas/DeleteOldEventsLambda.ts",
   SaveRetrievalEventLambda: "./src/infra/lambdas/SaveRetrievalEventLambda.ts"
 };
 

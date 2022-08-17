@@ -4,6 +4,7 @@ import { SaveRetrievalEventController, SaveRetrievalEventControllerEvent } from 
 import { ValidationError } from "../../../src/models/validation-error";
 import { expect } from "chai";
 import sinon from "sinon";
+import { RetrievalEventBatch } from "../../../src/models/retrieval-event-batch";
 
 describe("SaveRetrievalEventController", () => {
   describe("handler", () => {
@@ -13,12 +14,12 @@ describe("SaveRetrievalEventController", () => {
     });
 
     it("returns a 201 when the body of the request is valid", async () => {
-      // Stub the model to create a stubbed RetrievalEvent
+      // Stub the model to create a stubbed RetrievalEventBatch
       // We don't care that this instance is actually invalid, we just
       // need it to succeed.
-      const createStub = sinon.stub(RetrievalEvent, "create");
-      // @ts-ignore | The constructor for RetrievalEvent is private
-      createStub.returns(new RetrievalEvent());
+      const createStub = sinon.stub(RetrievalEventBatch, "create");
+      // @ts-ignore | The constructor for RetrievalEventBatch is private
+      createStub.returns(new RetrievalEventBatch());
 
       // Stub the use case to succeed
       const useCase = sinon.createStubInstance(SaveRetrievalEvent);
@@ -36,7 +37,7 @@ describe("SaveRetrievalEventController", () => {
 
     it("returns a 400 when the body of the request is invalid", async () => {
       // Stub the model to create a ValidationError
-      const createStub = sinon.stub(RetrievalEvent, "create");
+      const createStub = sinon.stub(RetrievalEventBatch, "create");
       const errorMessage = "returning a ValidationError for the test";
       createStub.returns(new ValidationError(errorMessage));
 

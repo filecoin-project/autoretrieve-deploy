@@ -10,7 +10,7 @@ import { RetrievalEventRepo } from "../../src/repos/retrieval-event-repo";
 import { SaveRetrievalEvent } from "../../src/use-cases/save-retrieval-event";
 
 describe("SaveRetrievalEvent", () => {
-  it("saves a retrieval event batch", () => {
+  it("saves a retrieval event batch", async () => {
     let retrievalEventRepo: SinonStubbedInstance<RetrievalEventRepo>;
     retrievalEventRepo = sinon.createStubInstance(PostgresRetrievalEventRepo);
     retrievalEventRepo.save.resolves();
@@ -31,7 +31,7 @@ describe("SaveRetrievalEvent", () => {
     if(retrievalEventBatch instanceof ValidationError) expect.fail(retrievalEventBatch.message);
 
     const useCase = new SaveRetrievalEvent({ retrievalEventRepo });
-    useCase.execute({ retrievalEventBatch });
+    await useCase.execute({ retrievalEventBatch });
 
     sinon.assert.calledOnce(retrievalEventRepo.saveBatch);
     sinon.assert.calledWith(retrievalEventRepo.saveBatch, retrievalEventBatch);

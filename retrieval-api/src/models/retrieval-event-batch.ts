@@ -3,7 +3,7 @@ import { ValidationError } from "./validation-error";
 
 export class RetrievalEventBatch {
   public static create(props: RetrievalEventBatchProps): RetrievalEventBatch | ValidationError {
-    if(!props.events === undefined) return new ValidationError("Property events is required.");
+    if(props.events === undefined) return new ValidationError("Property events is required.");
     
     const events: RetrievalEvent[] = [];
     const ignoredEvents = [];

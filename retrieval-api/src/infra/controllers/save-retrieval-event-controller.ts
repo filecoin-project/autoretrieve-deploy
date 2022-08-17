@@ -9,7 +9,7 @@ export class SaveRetrievalEventController {
   public handler = async (event: APIGatewayProxyEvent): Promise<any> => {
     // Either parse the body or provide an empty body
     let body;
-    if(event.body === null) {
+    if(event?.body === null || event?.body === undefined) {
       body = {};
     } else {
       try {

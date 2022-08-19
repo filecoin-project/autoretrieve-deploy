@@ -24,7 +24,7 @@ export class ServerStack extends Stack {
     this.securityGroup = new SecurityGroup(this, "Ec2DatabaseProxy", {
       vpc: props.vpc
     });
-    props.databaseSecurityGroup.addIngressRule(this.securityGroup, Port.tcp(54342), "Allow connection from ec2 server", true);
+    props.databaseSecurityGroup.addIngressRule(this.securityGroup, Port.tcp(5432), "Allow connection from ec2 server", true);
 
     new CfnKeyPair(this, "Ec2KeyPair", { keyName: "autoretrieve-retrieval-events-server-key-pair" });
     this.ec2 = new Instance(this, "PGAdminInstance", {

@@ -41,11 +41,6 @@ spec:
             - name: authorization
               mountPath: /data/.autoretrieve/eventrecorderauth
               subPath: eventrecorderauth
-          resources:
-            limits:
-              memory: 32Gi
-            requests:
-              memory: 32Gi
       volumes:
         - name: config
           configMap:

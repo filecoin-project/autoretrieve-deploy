@@ -1,7 +1,7 @@
 import { ValidationError } from "./validation-error";
 
 export class Phase {
-  public static VALUES = ["query", "retrieval"];
+  public static VALUES = ["indexer", "query", "retrieval"];
 
   public static create(value: string): Phase | ValidationError {
     if(!Phase.VALUES.includes(value)) {

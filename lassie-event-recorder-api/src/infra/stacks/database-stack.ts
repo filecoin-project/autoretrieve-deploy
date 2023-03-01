@@ -31,11 +31,10 @@ export class DatabaseStack extends Stack {
       value: this.database.secret.secretName
     });
 
-    this.proxy = new DatabaseProxy(this, "Proxy", {
+    this.proxy = this.database.database.addProxy(`${props.prefix}-DatabaseProxy`, {
       borrowTimeout: props.proxyBorrowTimeout,
-      dbProxyName: `${props.prefix}-DatabaseProxy`,
-      proxyTarget: ProxyTarget.fromInstance(this.database.database),
       secrets: [this.database.secret],
+      securityGroups: [this.database.securityGroup],
       vpc: props.vpc
     });
   }

@@ -5,10 +5,12 @@ import { Code, Function, IFunction, Runtime } from "aws-cdk-lib/aws-lambda";
 import { IRule, Rule, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 import { CustomDatabase } from "../constructs/custom-database";
+import { DatabaseProxy } from "aws-cdk-lib/aws-rds";
 
 interface DeleteOldEventsStackProps extends StackProps {
   database: CustomDatabase,
-  databaseEnvironment: {[key: string]: string}
+  proxy: DatabaseProxy,
+  databaseEnvironment: { [key: string]: string }
   interval: string
   prefix: string
   vpc: IVpc
@@ -46,7 +48,8 @@ export class DeleteOldEventsStack extends Stack {
     });
 
     // Grant the lambda connection abilities to the database
-    props.database.grantConnectFromLambda(this, this.lambda);
+    props.proxy.grantConnect(this.lambda); // Give lambda permission to connect to db
+    props.database.secret.grantRead(this.lambda); // Give lambda permission to read database secret
 
     // Invoke the lambda every day to remove interval old events
     this.rule = new Rule(this, "DeleteOldEventsRule", {

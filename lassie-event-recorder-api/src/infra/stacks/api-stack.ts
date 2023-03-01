@@ -3,13 +3,15 @@ import { LambdaIntegration, RequestAuthorizer, RestApi } from "aws-cdk-lib/aws-a
 import { Port, SecurityGroup, SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
 import { ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
+import { DatabaseProxy } from "aws-cdk-lib/aws-rds";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Construct } from "constructs";
 import { CustomDatabase } from "../constructs/custom-database";
 
 export interface ApiStackProps extends StackProps {
   database: CustomDatabase
-  databaseEnvironment: {[key: string]: string}
+  proxy: DatabaseProxy
+  databaseEnvironment: { [key: string]: string }
   prefix: string
   vpc: Vpc
 }
@@ -49,7 +51,8 @@ export class ApiStack extends Stack {
     });
 
     // Grant the lambda connection abilities to the database
-    props.database.grantConnectFromLambda(this, saveRetrievalEventFn)
+    props.proxy.grantConnect(saveRetrievalEventFn); // Give lambda permission to connect to db
+    props.database.secret.grantRead(saveRetrievalEventFn); // Give lambda permission to read database secret
     // Give the other apig stages the ability to invoke the lambda
     saveRetrievalEventFn.grantInvoke(new ServicePrincipal("apigateway.amazonaws.com"));
 

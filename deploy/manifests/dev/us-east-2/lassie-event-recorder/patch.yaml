@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lassie-event-recorder
+spec:
+  template:
+    spec:
+      containers:
+        - name: lassie-event-recorder
+          # Image tag is set to `main` which is a tag that is reused and represents the head of main branch.
+          # Therefore, pull the image every time to make sure we got the latest.
+          imagePullPolicy: Always
+          env:
+            - name: GOLOG_LOG_LEVEL
+              value: INFO
+            - name: GOLOG_LOG_FMT
+              value: json
+            - name: LASSIE_EVENT_RECORDER_DB_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: lassie-event-recorder-db-creds
+                  key: dsn
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: "2"
+              memory: 4Gi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: lassie-event-recorder
+spec:
+  type: ClusterIP
+  clusterIP: None

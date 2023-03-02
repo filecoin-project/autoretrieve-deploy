@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lassie-event-recorder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lassie-event-recorder
+  template:
+    metadata:
+      labels:
+        app: lassie-event-recorder
+    spec:
+      containers:
+        - name: lassie-event-recorder
+          image: lassie-event-recorder
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http

@@ -51,7 +51,6 @@ new DeleteOldEventsStack(app, "DeleteOldEventsStack", {
   description: `${DESCRIPTION_PREFIX} | Lambda for deleting old events from the database`,
   stackName: `${PREFIX}DeleteOldEventsStack`,
   database,
-  proxy,
   databaseEnvironment,
   prefix: PREFIX,
   interval: "1 week",

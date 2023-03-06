@@ -8,7 +8,7 @@ import { CustomDatabase } from "../constructs/custom-database";
 
 interface DeleteOldEventsStackProps extends StackProps {
   database: CustomDatabase,
-  databaseEnvironment: {[key: string]: string}
+  databaseEnvironment: { [key: string]: string }
   interval: string
   prefix: string
   vpc: IVpc

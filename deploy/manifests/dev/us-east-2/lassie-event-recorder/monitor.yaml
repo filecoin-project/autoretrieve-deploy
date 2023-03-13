@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: lassie-event-recorder
+  labels:
+    app: lassie-event-recorder
+spec:
+  selector:
+    matchLabels:
+      app: lassie-event-recorder
+  namespaceSelector:
+    matchNames:
+      - autoretrieve
+  podMetricsEndpoints:
+    - path: /metrics
+      port: admin

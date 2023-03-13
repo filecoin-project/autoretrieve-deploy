@@ -18,6 +18,8 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+            - name: admin
+              containerPort: 7777
           readinessProbe:
             httpGet:
               path: /ready

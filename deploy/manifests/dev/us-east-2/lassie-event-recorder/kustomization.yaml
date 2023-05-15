@@ -7,6 +7,7 @@ resources:
   - ../../../base/lassie-event-recorder
   - db-dsn-secret.yaml
   - basic-auth-secret.yaml
+  - mongo-secret.yaml
   - ingress.yaml
   - monitor.yaml
 

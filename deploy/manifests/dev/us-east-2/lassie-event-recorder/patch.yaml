@@ -20,6 +20,11 @@ spec:
                 secretKeyRef:
                   name: lassie-event-recorder-db-creds
                   key: dsn
+            - name: LASSIE_EVENT_RECORDER_MONGO
+              valueFrom:
+                secretKeyRef:
+                  name: lassie-event-recorder-mongo-creds
+                  key: mongoaddr
           resources:
             limits:
               cpu: "2"

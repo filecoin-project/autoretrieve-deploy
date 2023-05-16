@@ -10,6 +10,13 @@ spec:
           # Image tag is set to `main` which is a tag that is reused and represents the head of main branch.
           # Therefore, pull the image every time to make sure we got the latest.
           imagePullPolicy: Always
+          args:
+            - '-mongoDB'
+            - 'reputation'
+            - '-mongoCollection'
+            - 'lassie'
+            - '-mongoPercent'
+            - '0.01'
           env:
             - name: GOLOG_LOG_LEVEL
               value: INFO

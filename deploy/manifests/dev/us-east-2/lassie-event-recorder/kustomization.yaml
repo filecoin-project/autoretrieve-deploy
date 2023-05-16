@@ -13,9 +13,3 @@ resources:
 
 patchesStrategicMerge:
   - patch.yaml
-
-images:
-  - name: lassie-event-recorder
-    newName: ghcr.io/filecoin-project/lassie-event-recorder
-    #  TODO: use immutable tag once development settles.
-    newTag: main

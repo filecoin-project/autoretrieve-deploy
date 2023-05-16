@@ -11,3 +11,6 @@ images:
   - name: autoretrieve
     newName: 407967248065.dkr.ecr.us-east-2.amazonaws.com/autoretrieve/autoretrieve # {"$imagepolicy": "autoretrieve:autoretrieve:name"}
     newTag: 20230203025230-master-40aa4c847784662542244357aee3f0d0d1f6e4b0 # {"$imagepolicy": "autoretrieve:autoretrieve:tag"}
+  - name: lassie-event-recorder
+    newName: ghcr.io/filecoin-project/lassie-event-recorder # {"$imagepolicy": "autoretrieve:lassie-event-recorder:name"}
+    newTag: main # {"$imagepolicy": "autoretrieve:lassie-event-recorder:tag"}

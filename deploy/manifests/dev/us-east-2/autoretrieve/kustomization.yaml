@@ -14,7 +14,7 @@ patchesStrategicMerge:
 
 replicas:
   - name: autoretrieve
-    count: 1
+    count: 0
 
 configMapGenerator:
   - name: autoretrieve-config

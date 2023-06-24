@@ -6,4 +6,4 @@ resources:
 images:
 - name: lassie-event-recorder
   newName: ghcr.io/filecoin-project/lassie-event-recorder # {"$imagepolicy": "autoretrieve:lassie-event-recorder:name"}
-  newTag: 20230605-064348-2c27726 # {"$imagepolicy": "autoretrieve:lassie-event-recorder:tag"}
+  newTag: 20230624-092839-45279a7 # {"$imagepolicy": "autoretrieve:lassie-event-recorder:tag"}

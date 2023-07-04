@@ -1,6 +1,6 @@
 creation_rules:
   - path_regex: '.+\.y(a)?ml'
     encrypted_regex: '^(data|stringData)$'
-    kms: 'arn:aws:kms:us-east-2:407967248065:alias/dev/us-east-2/autoretrieve'
+    kms: 'arn:aws:kms:us-east-2:407967248065:alias/dev/us-east-2/tornado'
   - path_regex: '.*'
-    kms: 'arn:aws:kms:us-east-2:407967248065:alias/dev/us-east-2/autoretrieve'
+    kms: 'arn:aws:kms:us-east-2:407967248065:alias/dev/us-east-2/tornado'

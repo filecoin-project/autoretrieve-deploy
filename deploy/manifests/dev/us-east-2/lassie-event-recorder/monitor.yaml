@@ -10,7 +10,7 @@ spec:
       app: lassie-event-recorder
   namespaceSelector:
     matchNames:
-      - autoretrieve
+      - tornado
   podMetricsEndpoints:
     - path: /metrics
       port: admin

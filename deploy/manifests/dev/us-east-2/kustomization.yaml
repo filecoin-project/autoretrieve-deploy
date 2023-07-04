@@ -1,9 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: autoretrieve
+namespace: tornado
 resources:
 - lassie-event-recorder
 images:
 - name: lassie-event-recorder
-  newName: ghcr.io/filecoin-project/lassie-event-recorder # {"$imagepolicy": "autoretrieve:lassie-event-recorder:name"}
-  newTag: 20230605-064348-2c27726 # {"$imagepolicy": "autoretrieve:lassie-event-recorder:tag"}
+  newName: ghcr.io/filecoin-project/lassie-event-recorder # {"$imagepolicy": "tornado:lassie-event-recorder:name"}
+  newTag: 20230605-064348-2c27726 # {"$imagepolicy": "tornado:lassie-event-recorder:tag"}

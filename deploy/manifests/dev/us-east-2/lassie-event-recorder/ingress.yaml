@@ -11,10 +11,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - lassie-event-recorder-2.dev.cid.contact
+        - lassie-event-recorder.dev.cid.contact
       secretName: lassie-event-recorder-ingress-tls
   rules:
-    - host: lassie-event-recorder-2.dev.cid.contact
+    - host: lassie-event-recorder.dev.cid.contact
       http:
         paths:
           - path: /
